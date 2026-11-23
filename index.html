@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mela</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#fbf6ee;--card:#fff;--ink:#2a1838;--mute:#7a6a85;--line:#eadfd0;--accent:#ff8a00;--teal:#0f8b7f;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1024;--card:#261834;--ink:#f6ecff;--mute:#a995b8;--line:#3a2850;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1a1024;--card:#261834;--ink:#f6ecff;--mute:#a995b8;--line:#3a2850;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:10px 16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:1.5rem;letter-spacing:-.03em}.logo i{font-style:normal;color:var(--accent)}
+nav{display:flex;gap:4px;margin:0 auto}
+nav button{padding:8px 16px;border-radius:99px;font-weight:600;color:var(--mute)}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.pill{background:var(--accent);color:#2a1838;font-weight:800;padding:9px 16px;border-radius:99px}
+.ghost{border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-weight:600}
+main{max-width:640px;margin:0 auto;padding:16px}main.wide{max-width:1100px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:10px;padding:12px 14px}.ph b{display:block;line-height:1.1}.ph small{color:var(--mute)}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;flex:none}
+.txt{padding:0 14px 12px;max-width:62ch;white-space:pre-wrap;overflow-wrap:anywhere}
+.media{aspect-ratio:16/9;position:relative;overflow:hidden}
+.art{position:absolute;inset:0}.art span{position:absolute;border-radius:50%;animation:drift 9s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(30px,-24px) scale(1.25)}}
+.acts{display:flex;gap:4px;padding:6px 8px;border-top:1px solid var(--line)}
+.acts button{padding:8px 12px;border-radius:10px;font-weight:600;color:var(--mute)}.acts button:hover{background:var(--line)}.acts .on{color:#e5195b}
+.cmts{padding:8px 14px 14px;border-top:1px solid var(--line)}.cmts p{margin:6px 0;font-size:.95rem}
+.cmts form{display:flex;gap:8px;margin-top:8px}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%}
+.btn{background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-weight:600;white-space:nowrap}
+.reels{height:calc(100dvh - 130px);overflow-y:auto;scroll-snap-type:y mandatory;border-radius:18px;max-width:420px;margin:0 auto;scrollbar-width:none}
+.reel{height:100%;scroll-snap-align:start;position:relative;overflow:hidden;color:#fff}
+.reel .cap{position:absolute;left:16px;right:80px;bottom:20px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.reel .side{position:absolute;right:10px;bottom:24px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.reel .side button{color:#fff;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.vid{text-align:left;display:block;width:100%}.vid .media{border-radius:14px}.vid h3{margin:8px 0 2px;font-size:1rem}.vid small{color:var(--mute)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--card);color:var(--ink);width:min(440px,92vw);padding:18px}
+dialog::backdrop{background:rgba(20,8,30,.55)}dialog h2{margin:0 0 10px}dialog input,dialog textarea,dialog select{margin-bottom:10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;z-index:40;font-weight:600}
+.media video,.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}.reel video,.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+@media (max-width:560px){nav{order:3;width:100%;justify-content:space-between}nav button{flex:1;padding:8px 6px}.me{margin-left:auto}}
+@media (prefers-reduced-motion:reduce){.art span{animation:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Mela<i>.</i></div>
+  <nav role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="feed">Feed</button><button role="tab" data-tab="reels">Reels</button><button role="tab" data-tab="videos">Videos</button>
+  </nav>
+  <div class="row me" id="me" style="margin:0"></div>
+</header>
+<main id="view"></main>
+
+<dialog id="authDlg">
+  <h2 id="authTitle">Log in</h2>
+  <input id="aName" placeholder="Username" autocomplete="username" hidden>
+  <input id="aEmail" type="email" placeholder="Email" autocomplete="email">
+  <input id="aPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+  <div class="row" style="justify-content:space-between"><button class="ghost" id="aSwitch">Create an account</button><span><button class="ghost" id="aCancel">Cancel</button> <button class="btn" id="aGo">Log in</button></span></div>
+</dialog>
+<dialog id="newDlg">
+  <h2>Create</h2>
+  <select id="nKind" aria-label="Type"><option value="post">Post</option><option value="reel">Reel (short)</option><option value="video">Video</option></select>
+  <input id="nTitle" placeholder="Title (for videos)">
+  <textarea id="nBody" rows="4" placeholder="Share what’s on your mind…"></textarea>
+  <input id="nFile" type="file" accept="image/*,video/*" aria-label="Photo or video (up to 50 MB)">
+  <div class="row" style="justify-content:flex-end"><button class="ghost" id="nCancel">Cancel</button><button class="btn" id="nGo">Publish</button></div>
+</dialog>
+
+<script>
+const SUPABASE_URL='https://fknsfzecwtdchhtskidf.supabase.co';
+const SUPABASE_KEY='sb_publishable_wFrgYQICiJ9ZSby-XY9lSQ_bYWZ1uH_';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const COLORS=['#ff8a00','#0f8b7f','#c2185b','#5b3fd1','#d1a400','#1b6fd1'];
+const GRAD=[['#ff8a00','#c2185b','#5b3fd1'],['#0f8b7f','#1b6fd1','#2a1838'],['#d1a400','#ff8a00','#c2185b'],['#5b3fd1','#0f8b7f','#ff8a00'],['#c2185b','#2a1838','#1b6fd1'],['#1b6fd1','#34d1c0','#d1a400']];
+const $=s=>document.querySelector(s),view=$('#view');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let user=null,me=null,posts=[],tab='feed',watching=null,signup=false;
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+function ago(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';return Math.floor(s/86400)+'d'}
+function art(g){const c=GRAD[g%6];return `<div class="art" style="background:linear-gradient(135deg,${c[0]},${c[1]})"><span style="width:55%;aspect-ratio:1;left:-8%;top:-10%;background:${c[2]};opacity:.55"></span><span style="width:40%;aspect-ratio:1;right:-6%;bottom:-8%;background:${c[0]};opacity:.7;animation-delay:-3s"></span></div>`}
+function mh(p,reel){if(p.media_url){if(p.media_type==='video')return `<video src="${esc(p.media_url)}" ${reel?'autoplay muted loop':''} controls playsinline preload="metadata"></video>`;return `<img src="${esc(p.media_url)}" alt="Photo by ${esc(p.profiles?.username)}" loading="lazy">`}return art(p.theme)}
+function av(p){const n=p?.username||'?';return `<div class="av" style="background:${COLORS[(p?.color||0)%6]}">${esc(n[0].toUpperCase())}</div>`}
+function likeBtn(p){const on=user&&p.likes.some(l=>l.user_id===user.id);return `<button class="${on?'on':''}" data-like="${p.id}" aria-pressed="${on}">${on?'♥':'♡'} ${p.likes.length}</button>`}
+
+async function load(){
+ const {data,error}=await sb.from('posts').select('*,profiles(username,color),likes(user_id),comments(id,body,created_at,profiles(username))').order('created_at',{ascending:false}).limit(80);
+ if(error){view.innerHTML=`<p class="empty">Couldn’t load posts: ${esc(error.message)}</p>`;return}
+ posts=data;render();
+}
+function topbar(){
+ $('#me').innerHTML=user?`${av(me)}<b>${esc(me?.username||'')}</b><button class="pill" id="create">+ Create</button><button class="ghost" id="logout">Log out</button>`:`<button class="ghost" id="login">Log in</button><button class="pill" id="signupBtn">Sign up</button>`;
+}
+function cmtHtml(p){return `<div class="cmts" hidden>${p.comments.map(c=>`<p><b>${esc(c.profiles?.username||'User')}</b> ${esc(c.body)}</p>`).join('')}<form data-form="${p.id}"><input placeholder="Write a comment…" aria-label="Comment" required maxlength="500"><button class="btn">Send</button></form></div>`}
+function renderFeed(){view.className='';const l=posts.filter(p=>p.kind==='post');
+ view.innerHTML=l.length?l.map(p=>`<article class="card"><div class="ph">${av(p.profiles)}<div><b>${esc(p.profiles?.username)}</b><small>${ago(p.created_at)}</small></div>${user&&p.user_id===user.id?`<button class="ghost" data-del="${p.id}" style="margin-left:auto" aria-label="Delete post">Delete</button>`:''}</div><div class="txt">${esc(p.body)}</div><div class="media">${mh(p)}</div><div class="acts">${likeBtn(p)}<button data-cm>💬 ${p.comments.length}</button><button data-share="${p.id}">↗ Share</button></div>${cmtHtml(p)}</article>`).join(''):`<p class="empty">No posts yet. Log in and tap + Create to share the first one.</p>`}
+function renderReels(){view.className='';const l=posts.filter(p=>p.kind==='reel');
+ view.innerHTML=l.length?`<div class="reels">${l.map(p=>`<section class="reel">${mh(p,1)}<div class="cap"><b>@${esc(p.profiles?.username)}</b><div>${esc(p.body)}</div></div><div class="side">${likeBtn(p)}<button data-share="${p.id}">↗ Share</button></div></section>`).join('')}</div>`:`<p class="empty">No reels yet. Create the first reel.</p>`}
+function renderVideos(){view.className='wide';
+ if(watching){const p=posts.find(x=>x.id===watching);if(p){view.innerHTML=`<div style="max-width:860px;margin:0 auto"><button class="btn" data-back>← All videos</button><div class="media" style="border-radius:16px;margin-top:12px">${mh(p)}</div><h2 style="margin:12px 0 4px">${esc(p.title||'Untitled')}</h2><small style="color:var(--mute)">${ago(p.created_at)} ago</small><p style="white-space:pre-wrap">${esc(p.body)}</p><div class="row">${av(p.profiles)}<b>${esc(p.profiles?.username)}</b><span style="margin-left:auto"></span>${likeBtn(p)}</div><article class="card">${cmtHtml(p).replace('hidden','')}</article></div>`;return}watching=null}
+ const l=posts.filter(p=>p.kind==='video');
+ view.innerHTML=l.length?`<div class="grid">${l.map(p=>`<button class="vid" data-open="${p.id}"><div class="media">${mh(p)}</div><h3>${esc(p.title||'Untitled')}</h3><small>${esc(p.profiles?.username)} · ${ago(p.created_at)} ago</small></button>`).join('')}</div>`:`<p class="empty">No videos yet. Create the first one.</p>`}
+function render(){topbar();document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));({feed:renderFeed,reels:renderReels,videos:renderVideos})[tab]()}
+function needLogin(){if(user)return false;openAuth(false);toast('Log in first');return true}
+function openAuth(s){signup=s;$('#authTitle').textContent=s?'Create account':'Log in';$('#aName').hidden=!s;$('#aGo').textContent=s?'Sign up':'Log in';$('#aSwitch').textContent=s?'I have an account':'Create an account';$('#authDlg').showModal()}
+
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+ if(d.tab){tab=d.tab;watching=null;render();scrollTo(0,0)}
+ else if(d.like){if(needLogin())return;const p=posts.find(x=>x.id===d.like),on=p.likes.some(l=>l.user_id===user.id);
+  if(on){p.likes=p.likes.filter(l=>l.user_id!==user.id);render();await sb.from('likes').delete().match({post_id:p.id,user_id:user.id})}
+  else{p.likes.push({user_id:user.id});render();await sb.from('likes').insert({post_id:p.id,user_id:user.id})}}
+ else if('cm' in d){const c=t.closest('article').querySelector('.cmts');c.hidden=!c.hidden}
+ else if(d.share){try{navigator.clipboard.writeText(location.href.split('#')[0])}catch(x){}toast('Link copied')}
+ else if(d.open){watching=d.open;render();scrollTo(0,0)}
+ else if('back' in d){watching=null;render()}
+ else if(d.del){if(confirm('Delete this post?')){await sb.from('posts').delete().eq('id',d.del);load()}}
+ else if(t.id==='login')openAuth(false);else if(t.id==='signupBtn')openAuth(true);
+ else if(t.id==='logout'){await sb.auth.signOut()}
+ else if(t.id==='create'){$('#newDlg').showModal()}
+ else if(t.id==='aSwitch')openAuth(!signup);else if(t.id==='aCancel')$('#authDlg').close();
+ else if(t.id==='nCancel')$('#newDlg').close();
+ else if(t.id==='aGo'){
+  const email=$('#aEmail').value.trim(),password=$('#aPass').value,username=$('#aName').value.trim();
+  if(!email||password.length<6||(signup&&username.length<2)){toast('Fill every field (password 6+ characters)');return}
+  t.disabled=true;
+  const r=signup?await sb.auth.signUp({email,password,options:{data:{username}}}):await sb.auth.signInWithPassword({email,password});
+  t.disabled=false;
+  if(r.error){toast(r.error.message);return}
+  $('#authDlg').close();
+  if(signup&&!r.data.session)toast('Check your email to confirm your account');
+ }
+ else if(t.id==='nGo'){
+  const body=$('#nBody').value.trim();if(!body){toast('Write something first');return}
+  const kind=$('#nKind').value,title=$('#nTitle').value.trim()||null;
+  const f=$('#nFile').files[0];let media_url=null,media_type=null;
+  if(f&&f.size>52428800){toast('File is over 50 MB');return}
+  t.disabled=true;t.textContent='Publishing…';
+  if(f){const path=`${user.id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+   const up=await sb.storage.from('media').upload(path,f,{contentType:f.type});
+   if(up.error){toast(up.error.message);t.disabled=false;t.textContent='Publish';return}
+   media_url=sb.storage.from('media').getPublicUrl(path).data.publicUrl;media_type=f.type.startsWith('video')?'video':'image'}
+  const {error}=await sb.from('posts').insert({user_id:user.id,kind,title,body,media_url,media_type,theme:Math.floor(Math.random()*6)});
+  t.disabled=false;t.textContent='Publish';if(error){toast(error.message);return}
+  $('#nFile').value='';$('#nBody').value='';$('#nTitle').value='';$('#newDlg').close();tab=kind==='post'?'feed':kind==='reel'?'reels':'videos';watching=null;await load();toast('Published');
+ }
+});
+document.addEventListener('submit',async e=>{
+ const id=e.target.dataset.form;if(!id)return;e.preventDefault();if(needLogin())return;
+ const i=e.target.querySelector('input'),body=i.value.trim();if(!body)return;
+ const {error}=await sb.from('comments').insert({post_id:id,user_id:user.id,body});
+ if(error){toast(error.message);return}
+ i.value='';await load();const a=[...document.querySelectorAll('[data-form]')].find(f=>f.dataset.form===id);if(a)a.closest('.cmts').hidden=false;
+});
+async function setUser(session){
+ user=session?.user||null;me=null;
+ if(user){const {data}=await sb.from('profiles').select('username,color').eq('id',user.id).single();me=data}
+ await load();
+}
+sb.auth.onAuthStateChange((ev,s)=>{setTimeout(()=>setUser(s),0)});
+sb.auth.getSession().then(({data})=>setUser(data.session));
+setInterval(()=>{if(!document.hidden&&!document.querySelector('dialog[open]')&&!document.activeElement?.closest('form'))load()},20000);
+</script>
+</body>
+</html>
